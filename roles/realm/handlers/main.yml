@@ -5,6 +5,3 @@
     name: "sssd"
     state: restarted
     enabled: true
-  when: sssd_complete.changed
-    #register: sssd_status
-  tags: user_sudo_add
