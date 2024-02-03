@@ -3,8 +3,8 @@
   become: true
   hosts: realm
 
-  pre_tasks:
-    - include: tasks/check_OS.yml
+  # pre_tasks:
+  #   - include: tasks/check_OS.yml
 
   roles:
     - realm
