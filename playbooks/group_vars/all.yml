@@ -1,0 +1,46 @@
+######### -- all vars -- #########
+
+######### -- Realm  playbook (Join to AD) -- ###########
+
+# 'dns1' is the name of dns-record on the PDC. For example, 172.16.0.1
+# 'dns2' is the name of dns-record on the PDC. For example, 172.16.0.2
+# 'dns3' is the name of dns-record on the DRC. For example, 10.0.0.1
+# 'ldap_server_checker' is the host and port checker for ldap server via LDAP/LDAPS/Kerberos ports. For example, ldap.test.local:389, ldap.test.local:88
+# 'domain_name_server' is the name of fqdn or internal root-domain name. For example, hcg.homecredit.net
+# 'domain_admin_user' is the login name of user for LDAP authentication (for pairing). For example, ldap_auth.svc
+# 'domain_admin_password' is the password of user for LDAP authentication.
+# 'domain_group_name' is the name of group from AD users for success authentication.
+# 'domain_sudo_group_name' is the name of group with sudo privileges for AD users.
+# 'ldap_name_server' is the name of server for LDAP authentication. For example, ldap.test.local
+# 'short_domain_server' is the name of server for finding AD records. For example, tst.local
+# 'ad_ou_computers' is the path for DN from AD. For example, OU=Test,OU=Servers,DC=tst,DC=test,DC=local
+# 'ad_user_name' is name of login from AD for specific user. Fox example, test-user
+# 'user_ad' is the variable of use task for granting access to user for log-on via LDAP! Key can be '1', if you will be permit access.
+# 'group_ad' is the variable of use task for granting access to group from AD. Attention! Key can be '1', if you will be permit access.
+# 'sudo_group_ad' is the variable of use task for granting access to sudoers for specific AD group. Attention! Key can be '1', if you will be permit access.
+# 'leave_realm' is the variable of use task for leaving from domain. Attention! Key can be '1', if you will be leave.
+# 'remove_realm' is the variable of use task for uninstalling of packages for use realmd, sssd. Attention! Key can be '1', if you will remove packages.
+
+dns1:
+dns2:
+dns3:
+ldap_server_checker:
+domain_name_server:
+domain_admin_user:
+domain_admin_password:
+domain_group_name:
+domain_sudo_group_name:
+ldap_name_server:
+short_domain_server:
+ad_ou_computers:
+ad_user_name:
+ad_sudo_user_name:
+realm_request_info:
+user_ad: 0
+sudo_user_ad: 0
+group_ad: 0
+sudo_group_ad: 0
+leave_realm: 0
+remove_realm: 0
+
+###########################################

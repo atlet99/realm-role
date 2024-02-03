@@ -1,0 +1,233 @@
+---
+- name: "Checking access to {{ ldap_name_server }}  server"
+  wait_for:
+    host: "{{ item.split(':')[0] }}"
+    port: "{{ item.split(':')[1] | int }}"
+    state: started
+    timeout: 5
+  loop: "{{ ldap_server_checker }}"
+  register: ldap_status
+
+# - debug:
+#     msg: "{{ ldap_status }}"
+
+- name: "Stop all tasks due to a network error to {{ ldap_name_server }}"
+  fail:
+    msg: "Error due network connects to {{ ldap_server_checker }}"
+  when: ldap_status is not succeeded
+
+- name: "Leave from Domain"
+  command: "/usr/sbin/realm leave"
+  when: "{{ leave_realm }} == 1"
+
+- name: "Remove realm"
+  yum:
+    name:
+      - realmd
+      - sssd
+    state: absent
+  when: "{{ remove_realm }} == 1"
+
+- name: "Install required packages"
+  yum:
+    name:
+      - realmd
+      - sssd
+      - oddjob
+      - oddjob-mkhomedir
+      - adcli
+      - samba-common
+      - samba-common-tools
+      - krb5-workstation
+      - authselect-compat
+    state: present
+    validate_certs: false
+    sslverify: false
+    update_cache: true
+  when:
+    (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8") or
+    (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "8")
+
+- name: "Install required packages for OS 7-version"
+  yum:
+    name:
+      - realmd
+      - oddjob
+      - oddjob-mkhomedir
+      - sssd
+      - adcli
+      - openldap-clients
+      - policycoreutils-python
+      - samba-common
+      - samba-common-tools
+      - krb5-workstation
+    state: present
+    validate_certs: false
+    sslverify: false
+    update_cache: true
+  when:
+    (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "7") or
+    (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "7")
+
+#- name: "Read resolv.conf file"
+#  command: "/usr/bin/cat /etc/resolv.conf"
+#  register: resolv_conf
+#
+#- name: "Compare DNS records"
+#  set_fact:
+#    dns_records:
+#      - "{{ dns1 }}"
+#      - "{{ dns2 }}"
+#      - "{{ dns3 }}"
+#
+#- name: "Check DNS records"
+#  block:
+#    - name: "Extract nameserver lines"
+#      set_fact:
+#        nameservers: "{{ resolv_conf.stdout_lines | select('match', '^nameserver') | map('regex_replace', '^nameserver\\s+', '') | list }}"
+##  fail:
+##    msg: "Error: Incorrect DNS - {{ item }} record is missing"
+##  loop: "{{ dns_records }}"
+##  when: item not in resolv_conf.stdout_lines
+#
+#    - name: "Compare DNS records"
+#      fail:
+#        msg: "Error: Incorrect DNS - {{ item }} record is missing"
+#      loop: "{{ dns_records }}"
+#      when: item not in nameservers
+
+- name: "Create /etc/krb5.conf"
+  template:
+    src: "krb5.conf.j2"
+    dest: "/etc/krb5.conf"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Check if AD domain discovery is successful"
+  command: "/usr/sbin/realm discover {{ domain_name_server }}"
+  register: domain_discovery
+#  when: dns_records | intersect(nameservers) | length == dns_records | length
+
+- name: "Create Kerberos ticket"
+  command: "/usr/bin/kinit -V {{ domain_admin_user }}"
+  args:
+    stdin: "{{ domain_admin_password }}"
+
+- name: "Join a server to {{ domain_name_server }}"
+  command: "/usr/sbin/realm join -U {{ domain_admin_user }}@{{ domain_name_server | upper }} {{ ldap_name_server | upper }} --computer-ou='{{ ad_ou_computers }}' --os-name='Linux' --os-version='{{ ansible_distribution }} - {{ ansible_distribution_version }}'"
+  args:
+    stdin: "{{ domain_admin_password }}"
+
+- name: "Domain join confirmation"
+  command: "/usr/sbin/realm list"
+  register: domain_joined
+
+- name: "Select authentication method with make home directory"
+  shell: "/usr/bin/authselect select sssd && /usr/bin/authselect select sssd with-mkhomedir"
+  when:
+    - domain_joined.rc == 0 and domain_joined.failed == false
+    - ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8"
+
+- name: "Select authentication method for OS 7-version"
+  shell: "authconfig --enablesssd --enablesssdauth --enablemkhomedir --update"
+  when:
+    - domain_joined.rc == 0 and domain_joined.failed == false
+    - ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "7"
+
+- name: "Gathering sssd.conf info"
+  stat:
+    path: "/etc/sssd/sssd.conf"
+  register: sssd_conf_stat
+
+- name: "Make back up sssd.conf"
+  copy:
+    src: "/etc/sssd/sssd.conf"
+    dest: "/root"
+    owner: root
+    group: root
+    mode: "0600"
+    backup: yes
+    remote_src: true
+  when: sssd_conf_stat.stat.exists
+
+- name: "Delete old sssd.conf"
+  file:
+    path: "/etc/sssd/sssd.conf"
+    state: absent
+  when: sssd_conf_stat.stat.exists
+  register: sssd_removed
+
+- name: "Setting up sssd.conf"
+  blockinfile:
+    path: "/etc/sssd/sssd.conf"
+    create: true
+    owner: root
+    group: root
+    mode: "0600"
+    block: |
+      [sssd]
+      domains = {{ domain_name_server }}
+      config_file_version = 2
+      services = nss, pam
+      default_domain_suffix = {{ domain_name_server }}
+      [nss]
+      homedir_substring = /home
+      [pam]
+      [domain/{{ domain_name_server }}]
+      ad_domain = {{ domain_name_server }}
+      krb5_realm = {{ domain_name_server | upper }}
+      realmd_tags = manages-system joined-with-adcli
+      cache_credentials = True
+      id_provider = ad
+      krb5_store_password_if_offline = True
+      default_shell = /bin/bash
+      ldap_id_mapping = True
+      use_fully_qualified_names = True
+      fallback_homedir = /home/%u@%d
+      access_provider = ad
+    insertafter: "EOF"
+    marker_begin: "Powered by ZH -"
+    marker_end: ""
+  register: sssd_complete
+  notify: "restart sssd service"
+
+- name: "Permit access to user from AD"
+  command: "/usr/sbin/realm permit {{ ad_user_name }}@{{ domain_name_server }}"
+  when:
+    #- sssd_status.changed and sssd_status.failed == false
+    - "{{ user_ad }} == 1"
+  tags: user_add
+
+- name: "Permit access to sudo for specific user"
+  blockinfile:
+    path: "/etc/sudoers.d/domain_admins"
+    owner: root
+    group: root
+    mode: "0644"
+    block: |
+      {{ ad_sudo_user_name }}@{{ domain_name_server }}  ALL=(ALL) ALL
+    create: true
+    insertafter: "EOF"
+    marker: "\n# For {{ realm_request_info }} - {{ ansible_date_time.iso8601 }}"
+  when: "{{ sudo_user_ad }} == 1"
+  tags: user_sudo_add
+
+- name: "Permit access to group from AD"
+  command: "/usr/sbin/realm permit -g {{ domain_group_name }}@{{ domain_name_server }}"
+  when: "{{ group_ad }} == 1"
+  tags: group_add
+
+- name: "Permit access to sudoers for specific group"
+  blockinfile:
+    path: "/etc/sudoers.d/domain_admins"
+    owner: root
+    group: root
+    mode: "0644"
+    block: |
+      %{{ domain_sudo_group_name }}@{{ domain_name_server }}  ALL=(ALL) ALL
+    create: true
+    insertafter: "EOF"
+    marker_begin: "\n #For {{ realm_request_info }} - {{ ansible_date_time.iso8601 }}"
+  when: "{{ sudo_group_ad }} == 1"
+  tags: group_sudo_add

@@ -1,0 +1,10 @@
+---
+- name: "Join a server to Active Directory" 
+  become: true
+  hosts: realm
+
+  pre_tasks:
+    - include: tasks/check_OS.yml
+
+  roles:
+    - realm

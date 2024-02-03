@@ -1,0 +1,10 @@
+---
+# handlers file for roles/realm
+- name: "restart sssd service"
+  service:
+    name: "sssd"
+    state: restarted
+    enabled: true
+  when: sssd_complete.changed
+    #register: sssd_status
+  tags: user_sudo_add
