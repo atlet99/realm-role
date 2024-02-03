@@ -1,15 +1,21 @@
-# Project Title
+# Ansible Role: Realm
 
 ## Table of Contents
 
 - [About](#about)
+- [Requirements](#requires)
 - [Getting Started](#getting_started)
 - [Usage](#usage)
 - [Contributing](../CONTRIBUTING.md)
+- [License](#license)
 
 ## About <a name = "about"></a>
 
-Write about 1-2 paragraphs describing the purpose of your project.
+An Ansible Role that installs Realm and Give permissions via LDAP on OEL/CentOS or Debian/Ubuntu (in the future). 
+
+## Requirements <a name = "requires"></a>
+
+Requires at least Ansible 2. You can download the last version from [`Ansible Official Docs`](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) to easilly install it.
 
 ## Getting Started <a name = "getting_started"></a>
 
@@ -20,7 +26,6 @@ These instructions will get you a copy of the project up and running on your loc
 What things you need to install the software and how to install them.
 
 ```
-Give examples
 ```
 
 ### Installing
@@ -44,3 +49,7 @@ End with an example of getting some data out of the system or using it for a lit
 ## Usage <a name = "usage"></a>
 
 Add notes about how to use the system.
+
+## License <a name = "license"></a>
+
+MIT / BSD
