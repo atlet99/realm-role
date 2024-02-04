@@ -1,7 +1,6 @@
 ---
-# handlers file for roles/realm
 - name: "restart sssd service"
-  service:
-    name: "sssd"
-    state: restarted
-    enabled: true
+  service: name=sssd state=restarted enabled=true
+    # name: "sssd"
+    # state: restarted
+    # enabled: true

@@ -8,9 +8,6 @@
   loop: "{{ ldap_server_checker }}"
   register: ldap_status
 
-# - debug:
-#     msg: "{{ ldap_status }}"
-
 - name: "Stop all tasks due to a network error to {{ ldap_name_server }}"
   fail:
     msg: "Error due network connects to {{ ldap_server_checker }}"
