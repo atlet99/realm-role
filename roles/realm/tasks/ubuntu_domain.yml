@@ -1,0 +1,46 @@
+---
+- name: install package ubuntu 16.04 and ubuntu 18.04
+  become: yes 
+  apt:
+    name:
+    - realmd
+    - sssd
+    - sssd-tools
+    - samba-common
+    - packagek it
+    - samba-common-b in
+    - samba-libs
+    - adcli
+    - ntp
+    - python-pexpect 
+  state: latest 
+  update_cache: yes
+  register: pkg_ubu
+  until: pkg_ubu is not failed
+  retries: 5
+  delay: 10
+  when: ansible_distribution_major_version = '16' or ansible_distribution major_version = '18'
+
+- name: install package for ubuntu 20.04
+  become: yes 
+  apt:
+    name:
+    - realmd
+    - sssd
+    - sssd-tools
+    - samba-common
+    - packagek it
+    - samba-common-b in
+    - samba-libs
+    - adcli
+    - ntp
+    - python-pexpect
+    - oddjob
+    - oddjob-mkhomedir
+  state: latest
+  update_cache: yes
+  register: pkg_ubu
+  until: pkg_ubu is not failed
+  retries: 5
+  delay: 10
+  when: ansible_distribution_major_version == '20'
