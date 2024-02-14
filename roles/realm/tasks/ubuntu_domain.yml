@@ -1,6 +1,6 @@
 ---
 - name: install package ubuntu 16.04 and ubuntu 18.04
-  become: yes 
+  become: true 
   apt:
     name:
     - realmd
@@ -8,7 +8,7 @@
     - sssd-tools
     - samba-common
     - packagek it
-    - samba-common-b in
+    - samba-common-bin
     - samba-libs
     - adcli
     - ntp
@@ -22,7 +22,7 @@
   when: ansible_distribution_major_version = '16' or ansible_distribution major_version = '18'
 
 - name: install package for ubuntu 20.04
-  become: yes 
+  become: true 
   apt:
     name:
     - realmd
@@ -30,7 +30,7 @@
     - sssd-tools
     - samba-common
     - packagek it
-    - samba-common-b in
+    - samba-common-bin
     - samba-libs
     - adcli
     - ntp
