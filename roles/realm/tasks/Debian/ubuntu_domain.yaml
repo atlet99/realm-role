@@ -19,7 +19,7 @@
   until: pkg_ubu is not failed
   retries: 5
   delay: 10
-  when: ansible_distribution_major_version == '16' or ansible_distribution major_version == '18'
+  when: ansible_distribution_major_version >= '16' and ansible_distribution major_version < '20'
 
 - name: install package for ubuntu 20.04
   become: true 
@@ -43,4 +43,4 @@
   until: pkg_ubu is not failed
   retries: 5
   delay: 10
-  when: ansible_distribution_major_version == '20'
+  when: ansible_distribution_major_version >= '20'
