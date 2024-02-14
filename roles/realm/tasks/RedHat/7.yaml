@@ -1,0 +1,20 @@
+- name: "Install required packages for OS 7-version"
+  yum:
+    name:
+      - realmd
+      - oddjob
+      - oddjob-mkhomedir
+      - sssd
+      - adcli
+      - openldap-clients
+      - policycoreutils-python
+      - samba-common
+      - samba-common-tools
+      - krb5-workstation
+    state: present
+    validate_certs: false
+    sslverify: false
+    update_cache: true
+  when:
+    (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "7") or
+    (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "7")

@@ -25,46 +25,49 @@
     state: absent
   when: "{{ remove_realm }} == 1"
 
-- name: "Install required packages"
-  yum:
-    name:
-      - realmd
-      - sssd
-      - oddjob
-      - oddjob-mkhomedir
-      - adcli
-      - samba-common
-      - samba-common-tools
-      - krb5-workstation
-      - authselect-compat
-    state: present
-    validate_certs: false
-    sslverify: false
-    update_cache: true
-  when:
-    (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8") or
-    (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "8")
+- name: Install required packages for OS Release Version (Both type of RHEL Based OS)
+  include_tasks: "{{ ansible_os_family}}/{{ ansible_distribution_major_version}}.yml"
 
-- name: "Install required packages for OS 7-version"
-  yum:
-    name:
-      - realmd
-      - oddjob
-      - oddjob-mkhomedir
-      - sssd
-      - adcli
-      - openldap-clients
-      - policycoreutils-python
-      - samba-common
-      - samba-common-tools
-      - krb5-workstation
-    state: present
-    validate_certs: false
-    sslverify: false
-    update_cache: true
-  when:
-    (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "7") or
-    (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "7")
+# - name: "Install required packages"
+#   yum:
+#     name:
+#       - realmd
+#       - sssd
+#       - oddjob
+#       - oddjob-mkhomedir
+#       - adcli
+#       - samba-common
+#       - samba-common-tools
+#       - krb5-workstation
+#       - authselect-compat
+#     state: present
+#     validate_certs: false
+#     sslverify: false
+#     update_cache: true
+#   when:
+#     (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8") or
+#     (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "8")
+
+# - name: "Install required packages for OS 7-version"
+#   yum:
+#     name:
+#       - realmd
+#       - oddjob
+#       - oddjob-mkhomedir
+#       - sssd
+#       - adcli
+#       - openldap-clients
+#       - policycoreutils-python
+#       - samba-common
+#       - samba-common-tools
+#       - krb5-workstation
+#     state: present
+#     validate_certs: false
+#     sslverify: false
+#     update_cache: true
+#   when:
+#     (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "7") or
+#     (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "7")
 
 #- name: "Read resolv.conf file"
 #  command: "/usr/bin/cat /etc/resolv.conf"
