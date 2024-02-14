@@ -1,0 +1,19 @@
+- name: "Install required packages"
+  yum:
+    name:
+      - realmd
+      - sssd
+      - oddjob
+      - oddjob-mkhomedir
+      - adcli
+      - samba-common
+      - samba-common-tools
+      - krb5-workstation
+      - authselect-compat
+    state: present
+    validate_certs: false
+    sslverify: false
+    update_cache: true
+  when:
+    (ansible_facts['distribution'] == "OracleLinux" and ansible_facts['distribution_major_version'] == "8") or
+    (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "8")
